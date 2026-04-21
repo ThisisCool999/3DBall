@@ -115,7 +115,7 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // Scene
+        
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x050510);
         scene.fog = new THREE.Fog(0x050510, 15, 55);
@@ -131,7 +131,7 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // Lights
+        
         scene.add(new THREE.AmbientLight(0x606080, 1.0));
         const mainLight = new THREE.DirectionalLight(0xffffff, 1.0);
         mainLight.position.set(5, 8, 5);
@@ -146,7 +146,7 @@
         pointLight2.position.set(3, 2, -2);
         scene.add(pointLight2);
 
-        // ========== AUDIO (Web Audio API — procedural) ==========
+
         let audioCtx = null;
         function ensureAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -170,7 +170,7 @@
         function playColorChange() {
             const ctx = ensureAudio();
             const t = ctx.currentTime;
-            // Rising shimmer: two detuned oscillators
+
             [0, 0.06].forEach((delay, i) => {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -182,7 +182,7 @@
                 osc.connect(gain).connect(ctx.destination);
                 osc.start(t + delay); osc.stop(t + delay + 0.3);
             });
-            // Sparkle noise burst
+        
             const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
             const data = buf.getChannelData(0);
             for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.3;
@@ -200,7 +200,8 @@
         function playDeath() {
             const ctx = ensureAudio();
             const t = ctx.currentTime;
-            // Low boom
+
+        
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'sine';
@@ -210,7 +211,7 @@
             gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
             osc.connect(gain).connect(ctx.destination);
             osc.start(); osc.stop(t + 0.6);
-            // Noise crash
+            
             const buf = ctx.createBuffer(1, ctx.sampleRate * 0.4, ctx.sampleRate);
             const data = buf.getChannelData(0);
             for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
@@ -226,8 +227,8 @@
         function playLevelUp() {
             const ctx = ensureAudio();
             const t = ctx.currentTime;
-            // Ascending arpeggio
-            const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+         
+            const notes = [523, 659, 784, 1047]; 
             notes.forEach((freq, i) => {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -246,7 +247,7 @@
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'square';
-            // Pitch rises with combo
+            
             const pitch = 500 + Math.min(combo * 8, 600);
             osc.frequency.setValueAtTime(pitch, ctx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(pitch * 1.2, ctx.currentTime + 0.05);
@@ -256,7 +257,7 @@
             osc.start(); osc.stop(ctx.currentTime + 0.08);
         }
 
-        // ========== BACKGROUND STARS ==========
+
         const starCount = 500;
         const starGeo = new THREE.BufferGeometry();
         const starPositions = new Float32Array(starCount * 3);
@@ -275,7 +276,7 @@
         const stars = new THREE.Points(starGeo, starMat);
         scene.add(stars);
 
-        // ========== BALL ==========
+  
         const ballRadius = 0.35;
         const ballGeometry = new THREE.SphereGeometry(ballRadius, 64, 64);
         const ballMaterial = new THREE.MeshPhysicalMaterial({
@@ -288,7 +289,7 @@
         const floorY = -0.5;
         const groundY = floorY + ballRadius;
 
-        // ========== COLORS ==========
+    
         const PINK = 0xff88cc, YELLOW = 0xffee55, BLUE = 0x66bbff;
         const BALL_COLOR = 0xff4455;
         const allColors = [PINK, YELLOW, BLUE];
@@ -303,7 +304,7 @@
             return a;
         }
 
-        // ========== RAIL CONFIG ==========
+ 
         const totalWidth = 2.0, panelHeight = 0.3, panelDepth = 0.6, splitGap = 0.25;
         let bounceTime = 1.0;
         const railSpeed = 4;
@@ -311,10 +312,10 @@
         const numSegments = 40;
         const railGroups = [];
 
-        // ========== GAME STATE (must be before randomCreator which reads combo) ==========
+    
         let gameStarted = false;
 
-        // ========== BEST RECORD ==========
+     
         let bestCombo = parseInt(localStorage.getItem('cb_bestCombo') || '0');
         let bestDistance = parseFloat(localStorage.getItem('cb_bestDistance') || '0');
         function updateBestDisplay() {
@@ -372,7 +373,7 @@
             return { meshes, type: 'three', colors: [...colors] };
         }
         function randomCreator() {
-            // Difficulty scales: fewer big panels, more three-splits over time
+
             const diff = Math.min(combo * 0.012, 0.6);
             const bigChance = Math.max(0.01, 0.10 - diff * 0.15);
             const twoChance = Math.max(0.15, 0.35 - diff * 0.3);
@@ -381,18 +382,18 @@
             if (r < bigChance + twoChance) return createTwoRects;
             return createThreeSquares;
         }
-        // Ensure upcoming split panels always have the current ball color
+
         function fixUpcomingPanels() {
             railGroups.forEach((group) => {
-                // Only fix panels ahead of the ball (negative Z = ahead)
+     
                 if (group.meshes[0].position.z >= 0) return;
                 if (group.type === 'big') return;
 
-                // Check if any sub-panel already matches current ball color
+        
                 const hasMatch = group.colors.some(c => c === currentBallColor);
                 if (hasMatch) return;
 
-                // Replace a random sub-panel's color with the ball color
+            
                 const idx = Math.floor(Math.random() * group.colors.length);
                 group.colors[idx] = currentBallColor;
                 group.meshes[idx].material.color.setHex(currentBallColor);
@@ -404,7 +405,7 @@
             railGroups.push(randomCreator()(-numSegments * stride / 2 + i * stride));
         }
 
-        // ========== PARTICLES ==========
+  
         const particles = [];
         const particleGeo = new THREE.SphereGeometry(0.04, 6, 6);
 
@@ -426,10 +427,10 @@
             }
         }
 
-        // ========== SHOCKWAVE RINGS ==========
+       
         const shockwaves = [];
         function spawnShockwave(x, y, z, color) {
-            // Main square wave
+
             const edges1 = new THREE.EdgesGeometry(new THREE.PlaneGeometry(0.3, 0.3));
             const lineMat1 = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.9 });
             const sq1 = new THREE.LineSegments(edges1, lineMat1);
@@ -438,7 +439,7 @@
             sq1.userData = { life: 1.0, speed: 5.0 };
             scene.add(sq1); shockwaves.push(sq1);
 
-            // Second delayed square
+      
             setTimeout(() => {
                 const edges2 = new THREE.EdgesGeometry(new THREE.PlaneGeometry(0.2, 0.2));
                 const lineMat2 = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6 });
@@ -449,7 +450,7 @@
                 scene.add(sq2); shockwaves.push(sq2);
             }, 80);
 
-            // Third square
+
             setTimeout(() => {
                 const edges3 = new THREE.EdgesGeometry(new THREE.PlaneGeometry(0.15, 0.15));
                 const lineMat3 = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.4 });
@@ -460,7 +461,7 @@
                 scene.add(sq3); shockwaves.push(sq3);
             }, 160);
 
-            // Wave particles — burst outward in square pattern
+            
             for (let i = 0; i < 20; i++) {
                 const side = Math.floor(Math.random() * 4);
                 let vx, vz;
@@ -504,9 +505,9 @@
             }
         }
 
-        // (game state moved earlier, before rail init)
 
-        // Start screen slider updates
+
+
         document.getElementById('gamespeed-slider').addEventListener('input', (e) => {
             document.getElementById('gamespeed-val').textContent = parseFloat(e.target.value).toFixed(1) + 'x';
         });
@@ -514,7 +515,7 @@
             document.getElementById('start-movespeed-val').textContent = e.target.value;
         });
 
-        // Start game on button click only
+  
         document.getElementById('start-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             gameSpeedMult = parseFloat(document.getElementById('gamespeed-slider').value);
@@ -523,7 +524,7 @@
             document.getElementById('speed-val').textContent = moveSpeed.toFixed(0);
             bounceTime = 1.0 / gameSpeedMult;
             stride = railSpeed * bounceTime;
-            // Rebuild rails with new stride
+         
             railGroups.forEach(g => g.meshes.forEach(m => scene.remove(m)));
             railGroups.length = 0;
             for (let i = 0; i < numSegments; i++) {
@@ -534,7 +535,7 @@
             document.getElementById('start-screen').style.display = 'none';
         });
 
-        // Feedback text animation
+       
         let feedbackTimer = 0;
         function showFeedback(text, color) {
             const el = document.getElementById('feedback-text');
@@ -554,8 +555,7 @@
             }
         }
 
-        // ========== COMBO EFFECTS ==========
-        // Level tiers
+
         const levels = [
             { at: 0,   name: 'WARM UP',        color: '#aaaaaa', shadow: '' },
             { at: 3,   name: 'GETTING STARTED', color: '#66bbff', shadow: '0 0 15px #66bbff' },
@@ -589,7 +589,7 @@
             lvlEl.style.color = lvl.color;
             lvlEl.style.textShadow = lvl.shadow;
 
-            // Milestone flash on level-up
+           
             const isLevelUp = levels.some(l => l.at === combo);
             if (isLevelUp && combo > 0) {
                 streak.textContent = lvl.name;
@@ -599,7 +599,7 @@
             }
         }
 
-        // ========== CONTROLS ==========
+     
         let moveSpeed = 8.0;
         const keys = {};
         document.getElementById('speed-slider').addEventListener('input', (e) => {
@@ -614,7 +614,7 @@
             mouseTargetX = (e.clientX / window.innerWidth - 0.5) * totalWidth * 2.5;
         });
 
-        // ========== ANIMATION ==========
+     
         function animate() {
             requestAnimationFrame(animate);
             const t = performance.now() * 0.001;
@@ -625,7 +625,7 @@
             updateShockwaves(dt);
             updateFeedback(dt);
 
-            // Twinkle stars
+         
             starMat.opacity = 0.5 + Math.sin(t * 0.5) * 0.15;
 
             if (!gameStarted) {
@@ -642,8 +642,7 @@
                 return;
             }
 
-            // Progressive difficulty: speed up over time, more three-splits
-            // Aggressive speed curve: ramps hard at each tier
+       
             let difficultyRamp;
             if (combo < 8) difficultyRamp = combo * 0.01;           // warm up
             else if (combo < 15) difficultyRamp = 0.08 + (combo - 8) * 0.02;   // on fire
@@ -653,20 +652,20 @@
             else if (combo < 70) difficultyRamp = 1.52 + (combo - 50) * 0.03;  // god mode
             else difficultyRamp = 2.12 + (combo - 70) * 0.025;                 // transcended
 
-            // Player X movement
+          
             if (keys['ArrowLeft'] || keys['a'] || keys['A']) ballX -= moveSpeed * dt;
             if (keys['ArrowRight'] || keys['d'] || keys['D']) ballX += moveSpeed * dt;
             if (mouseControlActive) ballX += (mouseTargetX - ballX) * moveSpeed * dt;
             ballX = Math.max(-totalWidth / 2, Math.min(totalWidth / 2, ballX));
 
-            // Deterministic bounce with difficulty ramp
+
             const currentBounceTime = bounceTime / (1 + difficultyRamp);
             const currentRailSpeed = railSpeed * (1 + difficultyRamp);
             bounceTimer += dt;
             const progress = (bounceTimer % currentBounceTime) / currentBounceTime;
             const ballY = groundY + Math.sin(progress * Math.PI) * 3.0;
 
-            // Landing
+         
             if (bounceTimer >= currentBounceTime) {
                 bounceTimer -= currentBounceTime;
                 totalDistance += stride;
@@ -675,7 +674,7 @@
                     const panelZ = group.meshes[0].position.z;
                     if (Math.abs(panelZ) < stride / 2) {
                         if (group.type === 'big') {
-                            // Color change
+                   
                             if (currentBallColor !== group.color) {
                                 spawnParticles(ballX, groundY, 0, currentBallColor, 25, 3);
                                 spawnParticles(ballX, groundY, 0, group.color, 25, 3);
@@ -686,7 +685,7 @@
                             currentBallColor = group.color;
                             ballMaterial.color.setHex(currentBallColor);
                             fixUpcomingPanels();
-                            // Big panel is always safe
+              
                             combo++;
                             popCombo();
                             playComboTick();
@@ -699,7 +698,7 @@
                                 showFeedback('Great!', '#66bbff');
                             }
                         } else {
-                            // Find which sub-panel
+                    
                             let landedIdx = 0, closestDist = Infinity;
                             group.meshes.forEach((mesh, idx) => {
                                 const dist = Math.abs(mesh.position.x - ballX);
@@ -707,12 +706,12 @@
                             });
                             const landedColor = group.colors[landedIdx];
                             if (landedColor !== currentBallColor) {
-                                // DEATH
+                       
                                 playDeath();
                                 gameOver = true;
                                 document.getElementById('final-stats').textContent =
                                     `Combo: ${combo} | Distance: ${totalDistance.toFixed(1)}m`;
-                                // Check for new record
+                     
                                 const isNewBest = combo > bestCombo || (combo === bestCombo && totalDistance > bestDistance);
                                 if (isNewBest) {
                                     bestCombo = combo;
@@ -729,7 +728,7 @@
                                 spawnParticles(ballX, groundY + 0.5, 0, 0xff0000, 40, 6);
                                 spawnParticles(ballX, groundY + 0.5, 0, 0xffffff, 30, 4);
                             } else {
-                                // Correct color — combo!
+                   
                                 playBounce();
                                 combo++;
                                 popCombo();
@@ -752,7 +751,7 @@
             ball.position.y = ballY;
             ball.rotation.x -= currentRailSpeed * dt * 0.5;
 
-            // Move rails
+        
             const loopLength = numSegments * stride;
             railGroups.forEach((group) => {
                 group.meshes.forEach((mesh) => mesh.position.z += currentRailSpeed * dt);
@@ -767,12 +766,12 @@
                 }
             });
 
-            // Update HUD
+           
             document.getElementById('speed-val').textContent = moveSpeed.toFixed(0);
             document.getElementById('combo-num').textContent = combo;
             document.getElementById('dist-val').textContent = totalDistance.toFixed(1);
 
-            // Animate lights
+     
             pointLight1.position.x = Math.sin(t * 0.7) * 4;
             pointLight1.position.z = Math.cos(t * 0.7) * 4;
             pointLight2.position.x = Math.cos(t * 0.5) * 4;
@@ -782,7 +781,7 @@
         }
         animate();
 
-        // Restart — go back to start screen
+        
         document.getElementById('game-over').addEventListener('click', () => {
             gameOver = false;
             gameStarted = false;
@@ -796,7 +795,7 @@
             bounceTimer = 0;
             combo = 0;
             totalDistance = 0;
-            // Reset combo display
+            
             const comboEl = document.getElementById('combo-num');
             comboEl.textContent = '0';
             comboEl.style.color = '#fff';
@@ -811,7 +810,7 @@
             railGroups.length = 0;
         });
 
-        // Resize
+      
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
